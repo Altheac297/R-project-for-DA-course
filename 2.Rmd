@@ -1,0 +1,55 @@
+---
+title: "excercise2-rivers"
+author: "chenyuquan"
+date: "2023-03-07"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r rivers}
+rivers #内置数据集rivers
+num <- length(rivers) #计数
+num
+mean <- mean(rivers) #平均值
+mean
+mid <- median(rivers) #中位数
+mid
+sd <- sd(rivers) #标准差
+sd
+var <- var(rivers) #方差
+var
+max <- max(rivers) #最大值
+max
+min <- min(rivers) #最小值
+min
+rivers.Des.1 <- c(num,mean,mid,sd,var,max,min)
+rivers.Des.1
+
+feature_name <- c('总计','平均值','中位数','标准差','方差','最大值','最小值')
+value <- rivers.Des.1
+rivers.Des.2 <- data.frame(feature_name,value)
+rivers.Des.2
+
+```
+
+```{r women}
+women
+nrow(women)
+ncol(women)
+women[1:6,]
+women[(nrow(women)-6):nrow(women),]
+mean(women$height)
+sd(women$height)
+women.Height60 <- women[which(women$height > 60),]
+women.Height60
+women.list <- list(weight = women$weight, height = women$height)
+women.list
+women.matrix <- as.matrix(women)
+women.matrix
+t(women.matrix)
+cor(women)
+#cor中的method有三个参数，person,kendall,spearman,分别对应三种相关系数的计算和检验。Kendall相关系数是对于定类变量的统计，pearson是对定距变量的统计，而spearman是对定序变量的统计。三种不同的相关系数可以在R中的cor函数中得到设置和选择
+
+
+```
