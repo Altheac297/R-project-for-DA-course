@@ -1,0 +1,16 @@
+library(dplyr)
+library(ggplot2)
+str(iris)
+
+by_Species<- group_by(iris, Species)
+head(by_Species)
+iris.summary <- summarize(by_Species,
+                          Sepal.Length = mean(Sepal.Length),
+                          Sepal.Width = mean(Sepal.Width),
+                          Petal.Length = mean(Petal.Length),
+                          Petal.Width = mean(Petal.Width)
+)
+iris.summary
+iris
+ggplot(iris,aes(x = Sepal.Length, y = Sepal.Width, col = Species)) + geom_point() + geom_point(data = iris.summary, shape = 15, size = 5)
+
