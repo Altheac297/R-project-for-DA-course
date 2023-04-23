@@ -1,0 +1,101 @@
+---
+title: "模型预测-决策树与随机森林"
+author: "chenyuquan"
+date: "2023-04-23"
+output: html_document
+---
+
+```{r}
+library(modeldata)
+library(dplyr)
+set.seed(20230423)
+attrition <- modeldata::attrition
+attrition <- attrition %>% mutate_if(is.ordered, factor, ordered = FALSE)
+attrition$Attrition <- ifelse(attrition$Attrition=="Yes",1,0)
+attrition$Attrition <- as.factor(attrition$Attrition)
+
+library(caret)
+index <- createDataPartition(
+  attrition$Attrition,
+  p = 0.7,
+  list = FALSE
+)  
+train <- attrition[index,]
+test <-  attrition[-index,]
+
+# RPART包中的rpart()函数构建决策树模型
+library(rpart)
+tree = rpart(Attrition~., data = train, method = "class",parms = list(split="information"))
+par(mfrow=c(1,1))
+library(rpart.plot) 
+rpart.plot(tree,type=0,cex =0.5) 
+rpart.plot(tree,type=1,cex =0.5) 
+rpart.plot(tree,type=2,cex =0.5) 
+
+
+##CART
+#install.packages("rattle") 
+library(rattle) 
+fancyRpartPlot(tree)
+tree2 = rpart(Attrition~., data= train, method = "class",parms = list(split="gini")) #default 
+tree2 
+par(oma=c(0,0,1,0))
+par(mfrow=c(1,1)) 
+library(rpart.plot) 
+rpart.plot(tree2,type=0,cex =0.5) 
+rpart.plot(tree2,type=1,cex =0.5) 
+rpart.plot(tree2,type=2,cex =0.5) 
+
+
+##随机森林模型
+library(randomForest)
+rf <- randomForest(Attrition~., data = train, ntree =500, mtry=3, importance=TRUE, proximity=TRUE)
+rf$importance
+varImpPlot(rf, main = "variable importance")
+library(pROC) #绘制ROC曲线
+
+
+#3、使用构建的模型在测试数据上进行预测，并输出测试数据上的混淆矩阵
+
+##ID3测试
+train_predict <- as.data.frame(predict(tree)) # 训练数据集
+test_predict <- as.data.frame(predict(tree, newdata = test)) # 测试数据集
+
+train_predict <- ifelse(train_predict$'1' > 0.5,1,0)
+test_predict <- ifelse(test_predict$'1' > 0.5,1,0)
+
+# 输出训练数据的分类结果和混淆矩阵
+train_predictdata <- cbind(train, predictedclass = train_predict)
+train_confusion <- table(actual = train$Attrition, predictedclass = train_predict) 
+# 输出测试数据的分类结果和混淆矩阵
+test_predictdata <- cbind(test, predictedclass = test_predict)
+test_confusion <- table(actual = test$Attrition, predictedclass = test_predict)
+
+##CART
+train_predict2 <- as.data.frame(predict(tree2)) # 训练数据集
+test_predict2 <- as.data.frame(predict(tree2, newdata = test)) # 测试数据集
+
+train_predict2 <- ifelse(train_predict2$'1' > 0.5,1,0)
+test_predict2 <- ifelse(test_predict2$'1' > 0.5,1,0)
+
+# 输出训练数据的分类结果和混淆矩阵
+train_predictdata2 <- cbind(train, predictedclass = train_predict2)
+(train_confusion2 <- table(actual = train$Attrition, predictedclass = train_predict2) )
+# 输出测试数据的分类结果和混淆矩阵
+test_predictdata2 <- cbind(test, predictedclass = test_predict2)
+(test_confusion2 <- table(actual = test$Attrition, predictedclass = test_predict2))
+
+
+##随机森林测试
+#对测试集进行预测
+pre_ran <- predict(rf,newdata=test)
+obs_p_ran = data.frame(prob=pre_ran,obs=test$Attrition)#将真实值和预测值整合
+table(test$Attrition,pre_ran,dnn=c("真实值","预测值"))#输出混淆矩阵
+#绘制ROC曲线
+ran_roc <- roc(test$Attrition,as.numeric(pre_ran))
+plot(ran_roc, print.auc=TRUE, auc.polygon=TRUE, grid=c(0.1,0.2),grid.col=c("green", "red"), max.auc.polygon=TRUE,auc.polygon.col="skyblue", print.thres=TRUE,main='随机森林模型ROC曲线,mtry=3,ntree=500')
+
+
+
+
+```
